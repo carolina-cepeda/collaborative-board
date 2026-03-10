@@ -1,16 +1,91 @@
-# React + Vite
+# Frontend — Tablero Colaborativo
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Tecnologías: **React + Vite + p5.js**
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## p5.js
 
-## React Compiler
+Librería de dibujo creativo para el navegador. Expone funciones como `createCanvas`, `ellipse`, `fill` y variables como `mouseIsPressed`, `mouseX`, `mouseY`.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+En el proyecto se usa en **modo instancia** (no global), lo que permite integrarlo dentro de un componente React sin conflictos:
 
-## Expanding the ESLint configuration
+```js
+const sketch = function (p) {
+  p.setup = function () { p.createCanvas(700, 410); };
+  p.draw  = function () { };
+};
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## useRef
+
+Permite guardar un valor que **persiste entre renders sin causar uno nuevo**. Se usa para dos cosas en este proyecto:
+
+**1. Referenciar el div contenedor del canvas:**
+```jsx
+const containerRef = useRef(null);
+
+<div ref={containerRef} />
+```
+
+**2. Guardar la instancia de p5 fuera del control de React:**
+```jsx
+const myp5 = new P5(sketch, containerRef.current);
+```
+Si se guardara en `useState`, cada cambio de estado destruiría y recrearía el canvas, lo cual no es 
+necesario y gastaría más recursos.
+
+---
+
+## useEffect
+
+Ejecuta código **después de que el componente se monta** en el Document Object Model (DOM). Es el lugar correcto para inicializar p5.js porque el `div` contenedor ya existe en ese momento.
+
+```jsx
+useEffect(() => {
+  const myp5 = new P5(sketch, containerRef.current); 
+
+  return () => myp5.remove(); 
+}, []); 
+```
+
+Sin `useEffect`, `new P5(...)` se llamaría durante el render cuando el div todavía no existe en el DOM , lo que llevaría a una pantalla en blanco.
+
+El `return` dentro del effect es la función de **limpieza**: se ejecuta cuando el componente se desmonta y evita que queden múltiples instancias de p5 activas.
+
+---
+
+## Importar p5 en React
+
+p5 v2 cambió su formato de exportación. Para que funcione con ambas versiones:
+
+```jsx
+import * as p5lib from 'p5';
+const P5 = p5lib.default || p5lib; 
+```
+
+---
+
+## Estructura de App.jsx
+
+```jsx
+function App() {
+  const containerRef = useRef(null);   
+
+  const sketch = function (p) {        
+    p.setup = function () { ... };
+    p.draw  = function () { ... };
+  };
+
+  useEffect(() => {                    
+    const myp5 = new P5(sketch, containerRef.current);
+    return () => myp5.remove();       
+  }, []);
+
+  return <div ref={containerRef} />;   
+}
+```
+
+--
