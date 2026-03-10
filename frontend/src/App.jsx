@@ -24,14 +24,8 @@ function App() {
     };
   };
 
-  /*useEffect(() => {
-    const myp5 = new P5(sketch, containerRef.current);
-    return () => myp5.remove();
-  }, []);
-*/
+
   useEffect(() => {
-    console.log('ref:', containerRef.current); // debe mostrar el div
-    console.log('P5:', P5);                    // debe mostrar la función
     const myp5 = new P5(sketch, containerRef.current);
     return () => myp5.remove();
   }, []);
