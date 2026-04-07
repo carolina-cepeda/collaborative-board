@@ -34,7 +34,7 @@ function App() {
 
   useEffect(() => {
     const client = new Client({
-      brokerURL: 'ws://localhost:8080/ws-board/websocket',
+      brokerURL: import.meta.env.VITE_WS_URL|| 'ws://localhost:8080/ws-board/websocket',
       onConnect: () => {
         setConnected(true);
         client.subscribe('/topic/board', (message) => {
