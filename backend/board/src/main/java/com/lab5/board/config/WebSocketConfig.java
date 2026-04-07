@@ -3,10 +3,14 @@ package com.lab5.board.config;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.*;
+import org.springframework.beans.factory.annotation.Value;
+
 
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+    @Value("${allowed.origins}")
+    private String allowedOrigins;
 
     /**
      * Configures the message broker to use simple prefixes; "/topic"
@@ -26,7 +30,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws-board")
-                .setAllowedOrigins("http://localhost:5173")
+                .setAllowedOrigins(allowedOrigins)
                 .withSockJS();
     }
 }
